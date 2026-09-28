@@ -1,0 +1,84 @@
+{% extends "core/base.html" %}
+{% block title %}{{ member.get_full_name|default:member.username }}{% endblock %}
+{% block content %}
+<div class="container section">
+  <a href="/manage/?tab=members" class="fw-semibold" style="font-size:14px;">← Back to members</a>
+
+  <div class="d-flex align-items-center gap-3 mt-3 mb-4">
+    <div class="avatar" style="width:56px; height:56px; font-size:22px; border-radius:14px;">{{ member.username|first|upper }}</div>
+    <div>
+      <div class="eyebrow mb-1">Member</div>
+      <h1 class="mb-0" style="font-size:28px;">{{ member.get_full_name|default:member.username }}</h1>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card rw-card">
+        <div class="card-body p-4">
+          <h3 class="mb-3" style="font-size:16px;">Information</h3>
+          <dl class="row mb-0" style="font-size:14px;">
+            <dt class="col-5 fw-semibold">Username</dt><dd class="col-7">@{{ member.username }}</dd>
+            <dt class="col-5 fw-semibold">Email</dt><dd class="col-7">{{ member.email|default:"-" }}</dd>
+            <dt class="col-5 fw-semibold">Member since</dt><dd class="col-7 mb-0">{{ member.date_joined|date:"j M Y" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <ul class="nav nav-tabs rw-tabs mb-3">
+        <li class="nav-item"><a class="nav-link {% if active_tab == 'events' %}active{% endif %}" href="?tab=events">Upcoming events</a></li>
+        <li class="nav-item"><a class="nav-link {% if active_tab == 'past' %}active{% endif %}" href="?tab=past">Past events</a></li>
+      </ul>
+
+      {% if active_tab == 'past' %}
+        {% for event, roles in past.object_list %}
+          <div class="card rw-card mb-2">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+              <div class="d-flex align-items-center gap-3 mw-0">
+                <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+                <div class="mw-0">
+                  <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+                  <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"j M Y" }}</div>
+                  <div class="d-flex gap-1 mt-1">
+                    {% if 'participant' in roles %}<span class="role-tag participant">Participated</span>{% endif %}
+                    {% if 'volunteer' in roles %}<span class="role-tag volunteer">Volunteered</span>{% endif %}
+                  </div>
+                </div>
+              </div>
+              <a class="btn btn-ghost-ink btn-sm rounded-pill" href="{% url 'admin_event_signups' event.pk %}?from=past">Sign-ups</a>
+            </div>
+          </div>
+        {% empty %}
+          <p style="font-size:14px; color:var(--ink-soft);">No past events.</p>
+        {% endfor %}
+        {% include "core/_pagination.html" with page=past param="page" qs=qs_page %}
+
+      {% else %}
+        {% for event, roles in upcoming.object_list %}
+          <div class="card rw-card mb-2">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+              <div class="d-flex align-items-center gap-3 mw-0">
+                <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+                <div class="mw-0">
+                  <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+                  <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"D, j M · g:iA" }}</div>
+                  <div class="d-flex gap-1 mt-1">
+                    {% if 'participant' in roles %}<span class="role-tag participant">Participating</span>{% endif %}
+                    {% if 'volunteer' in roles %}<span class="role-tag volunteer">Volunteering</span>{% endif %}
+                  </div>
+                </div>
+              </div>
+              <a class="btn btn-ghost-ink btn-sm rounded-pill" href="{% url 'admin_event_signups' event.pk %}?from=events">Sign-ups</a>
+            </div>
+          </div>
+        {% empty %}
+          <p style="font-size:14px; color:var(--ink-soft);">No upcoming events.</p>
+        {% endfor %}
+        {% include "core/_pagination.html" with page=upcoming param="page" qs=qs_page %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

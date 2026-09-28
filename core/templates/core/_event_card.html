@@ -1,0 +1,8 @@
+<a class="card rw-card event-card h-100" href="{{ event.get_absolute_url }}">
+  <div class="thumb {{ event.css_type }}">{{ event.display_icon }}</div>
+  <div class="card-body">
+    <div class="date mb-1">{{ event.date|date:"D, j M · g:iA" }}</div>
+    <h3 class="mb-1"><span class="title-inner">{{ event.title }}</span></h3>
+    <div class="loc">📍 {{ event.location }}</div>
+  </div>
+</a>

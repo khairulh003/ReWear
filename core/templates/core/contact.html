@@ -1,0 +1,54 @@
+{% extends "core/base.html" %}
+{% block title %}Contact Us{% endblock %}
+{% block content %}
+<div class="container section">
+  <div class="eyebrow">Get in touch</div>
+  <div class="section-head mb-4">
+    <h2>Contact us</h2>
+  </div>
+  <div class="row g-4 g-lg-5">
+    <div class="col-lg-5">
+      <div class="card rw-card mb-3">
+        <div class="card-body p-4">
+          <h3 class="mb-3" style="font-size:16px;">Visit our facility</h3>
+          <p style="font-size:14px; color:var(--ink-soft);">
+            42 Tampines Industrial Ave 3, Singapore 528553<br>
+            Open Tue-Sun, 10am-6pm
+          </p>
+          <div class="d-flex flex-wrap gap-2 social-row">
+            <a href="#" onclick="return false;">Instagram</a>
+            <a href="#" onclick="return false;">Facebook</a>
+            <a href="#" onclick="return false;">hello@rewear.org</a>
+          </div>
+        </div>
+      </div>
+      <div class="card rw-card">
+        <div class="card-body p-4">
+          <h3 class="mb-3" style="font-size:16px;">Need clothing for a cause?</h3>
+          <p class="mb-0" style="font-size:14px; color:var(--ink-soft);">
+            If you're an organisation supporting people in need, tell us what's required.
+            We'll review your request and may host an event around it.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card rw-card">
+        <div class="card-body p-4">
+          <h3 class="mb-3" style="font-size:16px;">Request clothing for your organisation</h3>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+              </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-clay rounded-pill">Submit request</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

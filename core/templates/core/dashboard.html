@@ -1,0 +1,140 @@
+{% extends "core/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="container section">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 dash-header mb-4">
+    <div>
+      <div class="eyebrow">Member dashboard</div>
+      <div class="section-head">
+        <h2>Hi, {{ user.first_name|default:user.username }} 👋</h2>
+      </div>
+    </div>
+    <a class="btn btn-clay rounded-pill" href="{% url 'event_list' %}">Browse events</a>
+  </div>
+
+  <ul class="nav nav-tabs rw-tabs mb-4">
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'upcoming' %}active{% endif %}" href="?tab=upcoming">Upcoming</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'past' %}active{% endif %}" href="?tab=past">Past events</a></li>
+    <li class="nav-item">
+      <a class="nav-link d-inline-flex align-items-center gap-2 {% if active_tab == 'notifications' %}active{% endif %}" href="?tab=notifications">
+        Notifications{% if unread_count %} <span class="badge-count">{{ unread_count }}</span>{% endif %}
+      </a>
+    </li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'profile' %}active{% endif %}" href="?tab=profile">Profile</a></li>
+  </ul>
+
+  {% if active_tab == 'upcoming' %}
+    {% for event, roles in upcoming %}
+      <a href="{{ event.get_absolute_url }}?from=dash_upcoming" class="card rw-card card-link-row mb-2">
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+          <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+          <div class="mw-0">
+            <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+            <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"D, j M · g:iA" }} · {{ event.location }}</div>
+            <div class="d-flex gap-1 mt-1">
+              {% if 'participant' in roles %}<span class="role-tag participant">Participating</span>{% endif %}
+              {% if 'volunteer' in roles %}<span class="role-tag volunteer">Volunteering</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty-state">
+        <div class="ic-lg">📅</div>You haven't joined any events yet.<br>
+        <a class="btn btn-clay btn-sm rounded-pill mt-3" href="{% url 'event_list' %}">Browse events</a>
+      </div>
+    {% endfor %}
+
+  {% elif active_tab == 'past' %}
+    {% for event, roles in past %}
+      <a href="{{ event.get_absolute_url }}?from=dash_past" class="card rw-card card-link-row mb-2">
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+          <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+          <div class="mw-0">
+            <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+            <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"D, j M Y" }} · {{ event.location }}</div>
+            <div class="d-flex gap-1 mt-1">
+              {% if 'participant' in roles %}<span class="role-tag participant">Participated</span>{% endif %}
+              {% if 'volunteer' in roles %}<span class="role-tag volunteer">Volunteered</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty-state">
+        <div class="ic-lg">🗂️</div>
+        <div>No past events yet - your event history will show up here once an event you've joined has taken place.</div>
+      </div>
+    {% endfor %}
+
+  {% elif active_tab == 'notifications' %}
+    {% for note in notifications %}
+      <div class="notif-item d-flex gap-3">
+        <div class="notif-dot {% if note.read %}read{% endif %}"></div>
+        <div>
+          <div class="t">{{ note.message }}</div>
+          <div class="d">{{ note.created_at|date:"D, j M · g:iA" }}</div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state"><div class="ic-lg">🔔</div>No notifications yet. You'll see updates here when you join an event.</div>
+    {% endfor %}
+
+  {% elif active_tab == 'profile' %}
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card rw-card h-100">
+          <div class="card-body p-4">
+            <h3 class="mb-3" style="font-size:16px;">Your information</h3>
+            <form method="post" action="?tab=profile" novalidate>
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ profile_form.username.id_for_label }}">{{ profile_form.username.label }}</label>
+                {{ profile_form.username }}
+                {% for error in profile_form.username.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label" for="{{ profile_form.first_name.id_for_label }}">{{ profile_form.first_name.label }}</label>
+                  {{ profile_form.first_name }}
+                  {% for error in profile_form.first_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-6">
+                  <label class="form-label" for="{{ profile_form.last_name.id_for_label }}">{{ profile_form.last_name.label }}</label>
+                  {{ profile_form.last_name }}
+                  {% for error in profile_form.last_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="{{ profile_form.email.id_for_label }}">{{ profile_form.email.label }}</label>
+                {{ profile_form.email }}
+                {% for error in profile_form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+              </div>
+              <button type="submit" class="btn btn-clay btn-sm rounded-pill">Save changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card rw-card h-100">
+          <div class="card-body p-4">
+            <h3 class="mb-3" style="font-size:16px;">Change password</h3>
+            <form method="post" action="?tab=profile" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="change_password" value="1">
+              {% for field in password_form %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-outline-clay btn-sm rounded-pill">Change password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

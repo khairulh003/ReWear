@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+{% block title %}Delete event{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card rw-card auth-card">
+    <div class="card-body p-4 p-md-5">
+      <h2 class="mb-1" style="font-size:22px;">Delete "{{ event.title }}"?</h2>
+      <div class="sub mb-4">This removes the event and all {{ event.signups.count }} sign-up(s) attached to it. This can't be undone.</div>
+      <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-clay rounded-pill" style="--bs-btn-bg:#A03A2A; --bs-btn-border-color:#A03A2A; --bs-btn-hover-bg:#7F2E21; --bs-btn-hover-border-color:#7F2E21;">Delete event</button>
+        <a class="btn btn-ghost-ink rounded-pill" href="{% url 'admin_dashboard' %}">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

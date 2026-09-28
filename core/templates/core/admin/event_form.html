@@ -1,0 +1,50 @@
+{% extends "core/base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit event{% else %}Create event{% endif %}{% endblock %}
+{% block content %}
+<div class="container section" style="max-width:640px;">
+  <div class="eyebrow">Admin dashboard</div>
+  <h1 class="mb-4" style="font-size:30px;">{% if mode == 'edit' %}Edit event{% else %}Create event{% endif %}</h1>
+
+  {% if prefill_request %}
+    <div class="hint-box mb-3">
+      Creating this event in response to the request from <strong>{{ prefill_request.organisation_name }}</strong>
+      ({{ prefill_request.quantity }} of {{ prefill_request.clothing_type }}).
+    </div>
+  {% endif %}
+
+  <div class="card rw-card">
+    <div class="card-body p-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if prefill_request %}
+          <input type="hidden" name="from_request" value="{{ prefill_request.pk }}">
+        {% endif %}
+        {% if form.non_field_errors %}
+          <div class="hint-box mb-3" style="color:#A03A2A;">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+        {% endif %}
+        {% for field in form %}
+          {% if field.widget_type == 'checkbox' %}
+            <div class="form-check form-switch mb-2">
+              {{ field }}
+              <label class="form-check-label" for="{{ field.id_for_label }}" style="font-size:14px; font-weight:600;">{{ field.label }}</label>
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+          {% else %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="submit" class="btn btn-clay rounded-pill">{% if mode == 'edit' %}Save changes{% else %}Create event{% endif %}</button>
+          <a class="btn btn-ghost-ink rounded-pill" href="{% url 'admin_dashboard' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

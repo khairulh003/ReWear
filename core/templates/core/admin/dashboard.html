@@ -1,0 +1,167 @@
+{% extends "core/base.html" %}
+{% block title %}Manage{% endblock %}
+{% block content %}
+<div class="container section">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 dash-header mb-4">
+    <div>
+      <div class="eyebrow">Admin dashboard</div>
+      <div class="section-head">
+        <h2>Manage ReWear</h2>
+      </div>
+    </div>
+    <a class="btn btn-clay rounded-pill" href="{% url 'admin_event_create' %}">+ Create event</a>
+  </div>
+
+  <ul class="nav nav-tabs rw-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link d-inline-flex align-items-center gap-2 {% if active_tab == 'requests' %}active{% endif %}" href="?tab=requests">
+        Clothing requests{% if new_request_count %} <span class="badge-count">{{ new_request_count }}</span>{% endif %}
+      </a>
+    </li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'events' %}active{% endif %}" href="?tab=events">Events</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'past' %}active{% endif %}" href="?tab=past">Past Events</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'members' %}active{% endif %}" href="?tab=members">Members</a></li>
+  </ul>
+
+  <!-- Requests tab -->
+  {% if active_tab == 'requests' %}
+    <div class="accordion rw-accordion" id="requestsAccordion">
+      {% for req in clothing_requests.object_list %}
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#req{{ req.pk }}" aria-expanded="false" aria-controls="req{{ req.pk }}">
+              <div class="d-flex align-items-center gap-3 w-100 me-3">
+                <div class="ic {% if req.status == 'new' %}st-new{% elif req.status == 'reviewed' %}st-reviewed{% else %}st-created{% endif %}">✉️</div>
+                <div class="mw-0">
+                  <div class="mb-1">
+                    {% if req.status == 'new' %}<span class="role-tag status-new">New</span>
+                    {% elif req.status == 'reviewed' %}<span class="role-tag status-reviewed">Reviewed</span>
+                    {% else %}<span class="role-tag status-created">✓ Event created</span>{% endif %}
+                  </div>
+                  <div class="fw-bold" style="font-size:15px;">{{ req.organisation_name }}</div>
+                  <div style="font-size:12px; color:var(--ink-soft);">Received {{ req.created_at|date:"D, j M Y · g:iA" }}</div>
+                </div>
+              </div>
+            </button>
+          </h2>
+          <div id="req{{ req.pk }}" class="accordion-collapse collapse" data-bs-parent="#requestsAccordion">
+            <div class="accordion-body">
+              {% if req.message %}
+                <p class="mb-3" style="font-size:14px; color:var(--ink-soft); border-left:3px solid var(--line); padding-left:12px;">{{ req.message }}</p>
+              {% endif %}
+
+              <div style="font-size:13.5px;" class="mb-3">
+                <div><span class="fw-semibold">Type of Clothing Needed:</span><br> {{ req.clothing_type }}</div><br>
+                <div><span class="fw-semibold">Amount Needed:</span><br> {{ req.quantity }}</div>
+              </div>
+
+              <div style="font-size:13px; color:var(--ink-soft); border-top:1px solid var(--line); padding-top:10px;" class="mb-3">
+                <div class="fw-semibold" style="color:var(--ink);">Contact Information:</div>
+                <div>👤 | {{ req.contact_name }}</div>
+                <div>📧 | <a href="mailto:{{ req.email }}">{{ req.email }}</a></div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2">
+                {% if req.status == 'new' %}
+                  <form method="post" action="{% url 'admin_request_mark_reviewed' req.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost-ink btn-sm rounded-pill">Mark Reviewed</button>
+                  </form>
+                {% endif %}
+                {% if req.status != 'event_created' %}
+                  <a class="btn btn-outline-clay btn-sm rounded-pill" href="{% url 'admin_event_create' %}?from_request={{ req.pk }}">Create Event</a>
+                {% endif %}
+                {% if req.status != 'new' %}
+                  <form method="post" action="{% url 'admin_request_delete' req.pk %}"
+                        onsubmit="return confirm('Delete the request from {{ req.organisation_name|escapejs }}? This can\'t be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost-ink btn-sm rounded-pill" style="color:#A03A2A; border-color:#A03A2A;">Delete</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-state"><div class="ic-lg">📨</div>No clothing requests yet.</div>
+      {% endfor %}
+    </div>
+    {% include "core/_pagination.html" with page=clothing_requests param="req_page" qs=qs_req %}
+
+  <!-- Upcoming events tab -->
+  {% elif active_tab == 'events' %}
+    {% for event in upcoming_events.object_list %}
+      <div class="card rw-card mb-2">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+          <div class="d-flex align-items-center gap-3 mw-0">
+            <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+            <div class="mw-0">
+              <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+              <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"D, j M · g:iA" }}</div>
+              {% if event.created_from %}<div style="font-size:12px; color:var(--ink-soft);">from a clothing request</div>{% endif %}
+              <div class="d-flex gap-1 mt-1">
+                <span class="role-tag participant">{{ event.participant_count }} participating</span>
+                <span class="role-tag volunteer">{{ event.volunteer_count }} volunteering</span>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap flex-grow-1 justify-content-center justify-content-md-end">
+            <a class="btn btn-ghost-ink btn-sm rounded-pill" href="{% url 'admin_event_signups' event.pk %}?from=events">Sign-ups</a>
+            <a class="btn btn-outline-clay btn-sm rounded-pill" href="{% url 'admin_event_edit' event.pk %}">Edit</a>
+            <a class="btn btn-ghost-ink btn-sm rounded-pill" style="color:#A03A2A; border-color:#A03A2A;" href="{% url 'admin_event_delete' event.pk %}">Delete</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state"><div class="ic-lg">📅</div>No upcoming events. <a href="{% url 'admin_event_create' %}" class="fw-semibold">Create one</a>.</div>
+    {% endfor %}
+    {% include "core/_pagination.html" with page=upcoming_events param="up_page" qs=qs_up %}
+
+  <!-- Past events tab  -->
+  {% elif active_tab == 'past' %}
+    {% for event in past_events.object_list %}
+      <div class="card rw-card mb-2">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3 py-3">
+          <div class="d-flex align-items-center gap-3 mw-0">
+            <div class="ic {{ event.css_type }}">{{ event.display_icon }}</div>
+            <div class="mw-0">
+              <div class="fw-bold rw-title" style="font-size:15px;"><span class="title-inner">{{ event.title }}</span></div>
+              <div style="font-size:13px; color:var(--ink-soft);">{{ event.date|date:"j M Y" }}</div>
+              <div class="d-flex gap-1 mt-1">
+                <span class="role-tag participant">{{ event.participant_count }} participated</span>
+                <span class="role-tag volunteer">{{ event.volunteer_count }} volunteered</span>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap flex-grow-1 justify-content-center justify-content-md-end">
+            <a class="btn btn-outline-clay btn-sm rounded-pill" href="{% url 'event_detail' event.pk %}?from=admin_past">View</a>
+            <a class="btn btn-ghost-ink btn-sm rounded-pill" href="{% url 'admin_event_signups' event.pk %}?from=past">Sign-ups</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state"><div class="ic-lg">🗂️</div>No past events yet.</div>
+    {% endfor %}
+    {% include "core/_pagination.html" with page=past_events param="past_page" qs=qs_past %}
+
+  <!-- Members tab -->
+  {% elif active_tab == 'members' %}
+    {% for member in members.object_list %}
+      <a href="{% url 'admin_member_detail' member.pk %}" class="card rw-card card-link-row mb-2">
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+          <div class="avatar" style="width:42px; height:42px; font-size:16px; border-radius:10px;">{{ member.username|first|upper }}</div>
+          <div class="mw-0">
+            <div class="fw-bold" style="font-size:15px;">{{ member.get_full_name|default:member.username }}</div>
+            <div style="font-size:13px; color:var(--ink-soft);">@{{ member.username }}{% if member.email %} · {{ member.email }}{% endif %}</div>
+            <div style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Member since {{ member.date_joined|date:"j M Y" }}</div>
+          </div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty-state"><div class="ic-lg">👥</div>No members yet.</div>
+    {% endfor %}
+    {% include "core/_pagination.html" with page=members param="mem_page" qs=qs_mem %}
+  {% endif %}
+</div>
+{% endblock %}

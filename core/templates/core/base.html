@@ -1,0 +1,98 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ReWear{% endblock %} · ReWear</title>
+  <link href="{% static 'core/vendor/fonts.css' %}" rel="stylesheet">
+  <link href="{% static 'core/vendor/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'core/css/rewear.css' %}" rel="stylesheet">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg sticky-top rw-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}"><span class="logo-mark"></span>ReWear</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav mx-auto gap-2">
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'event_list' or request.resolver_match.url_name == 'event_detail' %}active{% endif %}" href="{% url 'event_list' %}">Events</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}" href="{% url 'contact' %}">Contact Us</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0 justify-content-center justify-content-lg-end">
+        {% if user.is_authenticated %}
+          {% if user.is_staff %}
+            <a class="user-chip" href="{% url 'admin_dashboard' %}"><span class="avatar">{{ user.username|first|upper }}</span> {{ user.username }}</a>
+          {% else %}
+            <a class="user-chip" href="{% url 'dashboard' %}">
+              <span class="avatar">{{ user.username|first|upper }}</span>
+              {{ user.username }}
+            </a>
+          {% endif %}
+          <form method="post" action="{% url 'logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost-ink btn-sm rounded-pill">Log out</button>
+          </form>
+        {% else %}
+          <a class="btn btn-ghost-ink btn-sm rounded-pill" href="{% url 'login' %}">Log in</a>
+          <a class="btn btn-clay btn-sm rounded-pill" href="{% url 'register' %}">Join now</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-grow-1">
+  {% block content %}{% endblock %}
+</main>
+
+{% if messages %}
+  <div class="toast-container position-fixed bottom-0 start-50 translate-middle-x p-3">
+    {% for message in messages %}
+      <div class="toast rw-toast align-items-center" role="alert" aria-live="polite" aria-atomic="true" data-bs-delay="3200">
+        <div class="d-flex align-items-center gap-2 px-3 py-2">
+          <span class="dot"></span>
+          <div class="toast-body p-1">{{ message }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<footer class="site-footer mt-auto">
+  <div class="container d-flex flex-wrap justify-content-between gap-2">
+    <span>© 2026 ReWear, a non-profit organisation</span>
+    <span>Made for CM3070</span>
+  </div>
+</footer>
+
+<script src="{% static 'core/vendor/bootstrap.bundle.min.js' %}"></script>
+<script>
+  // Measure each scrolling title: --tx is set to the exact overflow, so the
+  // hover marquee works at any width and stays still when the text fits.
+  function rwMeasureTitles() {
+    document.querySelectorAll('.title-inner').forEach(el => {
+      const d = el.parentElement.clientWidth - el.scrollWidth;
+      el.style.setProperty('--tx', (d < 0 ? d : 0) + 'px');
+    });
+  }
+  rwMeasureTitles();
+  window.addEventListener('load', rwMeasureTitles);
+  window.addEventListener('resize', rwMeasureTitles);
+
+  // Show Django messages as Bootstrap toasts, one after another.
+  const toastEls = document.querySelectorAll('.toast');
+  let delay = 0;
+  toastEls.forEach(el => {
+    setTimeout(() => bootstrap.Toast.getOrCreateInstance(el).show(), delay);
+    delay += 3400;
+  });
+</script>
+</body>
+</html>

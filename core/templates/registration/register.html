@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+{% block title %}Become a member{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card rw-card auth-card">
+    <div class="card-body p-4 p-md-5">
+      <h2 class="mb-1">Become a member</h2>
+      <div class="sub mb-4">Join to participate in donation drives and thrift swaps, or volunteer to help run them.</div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            {% for error in form.first_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            {% for error in form.last_name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+          </div>
+        </div>
+        {% for field in form %}
+          {% if field.name != 'first_name' and field.name != 'last_name' %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+        <button class="btn btn-clay rounded-pill w-100" type="submit">Create account</button>
+      </form>
+      <div class="text-center mt-3" style="font-size:14px; color:var(--ink-soft);">Already a member? <a href="{% url 'login' %}" class="fw-semibold">Log in</a></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

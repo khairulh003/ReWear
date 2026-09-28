@@ -1,0 +1,69 @@
+{% extends "core/base.html" %}
+{% block title %}Sign-ups - {{ event.title }}{% endblock %}
+{% block content %}
+<div class="container section">
+  <a href="/manage/?tab={{ back_tab }}" class="fw-semibold" style="font-size:14px;">← Back to {% if back_tab == 'past' %}past events{% elif back_tab == 'members' %}members{% else %}events{% endif %}</a>
+  <div class="dash-header mt-3 mb-4">
+    <div>
+      <div class="eyebrow">Sign-ups</div>
+      <h1 class="mb-1" style="font-size:28px;">{{ event.title }}</h1>
+      <div style="font-size:14px; color:var(--ink-soft);">{{ event.date|date:"D, j M Y · g:iA" }} · {{ event.location }}</div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card rw-card h-100">
+        <div class="card-body p-4">
+          <h3 class="d-flex align-items-center gap-2 mb-2" style="font-size:16px;">Participants <span class="role-tag participant">{{ participants|length }}</span></h3>
+          {% for signup in participants %}
+            <div class="notif-item d-flex gap-3 align-items-center">
+              <div class="avatar">{{ signup.user.first_name|default:signup.user.username|first|upper }}</div>
+              <div class="flex-grow-1">
+                <div class="t">{{ signup.user.get_full_name|default:signup.user.username }}</div>
+                <div class="d">joined {{ signup.created_at|date:"j M" }}</div>
+              </div>
+              {% if not is_past %}
+              <form method="post" action="{% url 'admin_signup_remove' signup.pk %}"
+                    onsubmit="return confirm('Remove {{ signup.user.get_full_name|default:signup.user.username|escapejs }} as a participant? They will be notified and can rejoin.');">
+                {% csrf_token %}
+                <input type="hidden" name="from" value="{{ back_tab }}">
+                <button type="submit" class="btn btn-ghost-ink btn-sm rounded-pill" style="color:#A03A2A; border-color:#A03A2A;">Remove</button>
+              </form>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div style="font-size:14px; color:var(--ink-soft);">No participants yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card rw-card h-100">
+        <div class="card-body p-4">
+          <h3 class="d-flex align-items-center gap-2 mb-2" style="font-size:16px;">Volunteers <span class="role-tag volunteer">{{ volunteers|length }}</span></h3>
+          {% for signup in volunteers %}
+            <div class="notif-item d-flex gap-3 align-items-center">
+              <div class="avatar" style="background:var(--green);">{{ signup.user.first_name|default:signup.user.username|first|upper }}</div>
+              <div class="flex-grow-1">
+                <div class="t">{{ signup.user.get_full_name|default:signup.user.username }}</div>
+                <div class="d">joined {{ signup.created_at|date:"j M" }}</div>
+              </div>
+              {% if not is_past %}
+              <form method="post" action="{% url 'admin_signup_remove' signup.pk %}"
+                    onsubmit="return confirm('Remove {{ signup.user.get_full_name|default:signup.user.username|escapejs }} as a volunteer? They will be notified and can rejoin.');">
+                {% csrf_token %}
+                <input type="hidden" name="from" value="{{ back_tab }}">
+                <button type="submit" class="btn btn-ghost-ink btn-sm rounded-pill" style="color:#A03A2A; border-color:#A03A2A;">Remove</button>
+              </form>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div style="font-size:14px; color:var(--ink-soft);">No volunteers yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
